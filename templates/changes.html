@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>{{ website.name }} History</h3>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i> Back to Monitors
+            </a>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Monitor Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>
+                            <strong><i class="fas fa-link me-2"></i> URL:</strong> 
+                            <a href="{{ website.url }}" target="_blank" class="text-info">{{ website.url }}</a>
+                        </p>
+                        <p>
+                            <strong><i class="fas fa-tag me-2"></i> Type:</strong> 
+                            <span class="badge {% if website.is_rss %}badge-rss{% else %}badge-web{% endif %}">
+                                {{ 'RSS Feed' if website.is_rss else 'Website' }}
+                            </span>
+                        </p>
+                        <p>
+                            <strong><i class="fas fa-flag me-2"></i> Priority:</strong> 
+                            <span class="badge {% if website.priority == 2 %}bg-danger{% elif website.priority == 1 %}bg-warning{% else %}bg-primary{% endif %}">
+                                {{ {0: 'Low', 1: 'Medium', 2: 'High'}[website.priority] }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p>
+                            <strong><i class="fas fa-clock me-2"></i> Frequency:</strong> 
+                            Every {{ website.check_frequency }} minutes
+                        </p>
+                        <p>
+                            <strong><i class="fas fa-calendar-check me-2"></i> Last Check:</strong> 
+                            {% if website.last_check %}
+                                {{ website.last_check.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </p>
+                        {% if website.is_rss and website.latest_post_title %}
+                        <div class="recent-item mt-3">
+                            <strong><i class="fas fa-newspaper me-2"></i> Latest Post:</strong>
+                            <a href="{{ website.latest_post_link }}" target="_blank" class="d-block mt-2">
+                                {{ website.latest_post_title }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i> Change History</h5>
+            </div>
+            <div class="card-body">
+                {% if changes %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th><i class="fas fa-calendar me-1"></i> Time</th>
+                                <th><i class="fas fa-info-circle me-1"></i> Type</th>
+                                {% if website.is_rss %}
+                                <th><i class="fas fa-heading me-1"></i> Title</th>
+                                <th><i class="fas fa-external-link-alt me-1"></i> Action</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for change in changes %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ change.detected_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>
+                                    <span class="badge {% if 'rss' in change.change_type %}bg-warning{% else %}bg-info{% endif %}">
+                                        {{ change.change_type|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                {% if website.is_rss %}
+                                <td>{{ change.post_title }}</td>
+                                <td>
+                                    {% if change.post_link %}
+                                    <a href="{{ change.post_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i> Open
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No changes detected yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
